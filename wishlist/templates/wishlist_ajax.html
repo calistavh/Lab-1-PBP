@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Wishlist</title>
+{% endblock meta %}
+
+{% block javascript %}
+<script>
+  $(document).ready(function() {
+    $.ajax( {
+        url: "{% url 'wishlist:show_json' %}",
+        type: "GET",
+        dataType: "json",
+    }).done(function(response) {
+        for (var i in response.data) {
+            var barang = `
+            <tr>
+                <td>${response.data[i].nama_barang}</td>
+                <td>${response.data[i].harga_barang}</td>
+                <td>${response.data[i].deskripsi}</td>
+            </tr>
+            `
+            $(".table-barang").append(barang)
+        }
+    })
+  })
+  $(document).ready(function() {
+    $("#form").submit(function(e) {
+        e.preventDefault();
+        $.ajax( {
+            url: "{% url 'wishlist:ajax_submit' %}",
+            type: "POST",
+            data: {
+                nama_barang: $("#nama_barang").val(),
+                harga_barang: $("#harga_barang").val(),
+                deskripsi: $("#deskripsi").val(),
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+            }
+        }).done(function(response) {
+            var barang = `
+            <tr>
+                <td>${response.nama_barang}</td>
+                <td>${response.harga_barang}</td>
+                <td>${response.deskripsi}</td>
+            </tr>
+            `
+            $(".table-barang").append(barang)
+        })
+        $(this).trigger("reset")
+    })
+  })
+</script>
+{% endblock javascript %}
+
+{% block content %}
+<nav class="navbar bg-dark">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand text-light" href="#">Wishlist</a>
+    </div>
+    <span class="navbar-text text-light">{{nama}}</span>
+    <a class="btn navbar-btn btn-light" href="{% url 'wishlist:logout' %}">Logout</a>
+  </div>
+</nav>
+
+<div class="container text-center my-3">
+  <h1>My Wishlist</h1>
+  <hr>
+  <h5>Nama:</h5>
+  <p>{{nama}}</p>
+
+  <table class="table table-barang table-striped">
+    <tr class="table-dark">
+      <th>Nama Barang</th>
+      <th>Harga Barang</th>
+      <th>Deskripsi</th>
+    </tr>
+  </table>
+
+  <hr>
+  <h5>Tambah Barang Wishlist</h5>
+  <form method="POST" action="" id="form">
+    {% csrf_token %}
+    <table class="table table-striped">
+      <tr>
+        <th>Nama Barang:</th>
+        <td><input type="text" name="nama_barang" id="nama_barang" placeholder="Nama Barang" class="form-control"></td>
+      </tr>
+      <tr>
+        <th>Harga Barang:</th>
+        <td><input type="number" name="harga_barang" id="harga_barang" placeholder="Harga Barang" class="form-control"></td>
+      </tr>
+      <tr>
+        <th>Deskripsi:</th>
+        <td><input type="text" name="deskripsi" id="deskripsi" placeholder="Deskripsi" class="form-control"></td>
+      </tr>
+    </table>
+    <input class="btn login_btn btn-dark" type="submit" value="Tambah Barang">
+  </form>
+  <hr>
+
+  <h5>Sesi terakhir login:</h5>
+  <p>{{last_login}}</p>
+  <a class="btn btn-dark" href="{% url 'wishlist:logout' %}">Logout</a>
+</div>
+{% endblock content %}
